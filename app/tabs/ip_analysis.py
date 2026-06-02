@@ -243,8 +243,17 @@ def render(api_key: str) -> None:
         )
 
         if uploaded_csv is not None:
-            preview_df = pd.read_csv(io.BytesIO(uploaded_csv.read()))
+            raw_bytes = uploaded_csv.read()
             uploaded_csv.seek(0)
+            for enc in ("utf-8-sig", "utf-8", "latin-1", "cp1252"):
+                try:
+                    preview_df = pd.read_csv(io.BytesIO(raw_bytes), encoding=enc)
+                    break
+                except (UnicodeDecodeError, Exception):
+                    continue
+            else:
+                st.error("Could not decode the CSV file. Please save it as UTF-8 and try again.")
+                st.stop()
             st.markdown("**Preview (first 10 rows):**")
             st.dataframe(preview_df.head(10), use_container_width=True, hide_index=True)
 

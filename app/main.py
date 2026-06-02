@@ -90,51 +90,33 @@ def main() -> None:
             unsafe_allow_html=True,
         )
 
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            st.markdown(
-                """
-                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #e74c3c;">
-                    <div style="font-size:1.5rem;">🛡️</div>
+        st.markdown(
+            """
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;border-left:3px solid #e74c3c;box-sizing:border-box;">
+                    <div style="font-size:1.4rem;">🛡️</div>
                     <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Global Blacklist</div>
-                    <div style="color:#95a5a6;font-size:0.85rem;">Live feed of the world's most abusive IPs, updated daily and cached to protect your quota.</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;line-height:1.5;">Live feed of the world's most abusive IPs, updated daily and cached to protect your quota.</div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c2:
-            st.markdown(
-                """
-                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #3498db;">
-                    <div style="font-size:1.5rem;">🔍</div>
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;border-left:3px solid #3498db;box-sizing:border-box;">
+                    <div style="font-size:1.4rem;">🔍</div>
                     <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">IP Deep Dive</div>
-                    <div style="color:#95a5a6;font-size:0.85rem;">Score gauge, country, ISP, usage type, and 90 days of individual reporter comments for any IP.</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;line-height:1.5;">Score gauge, country, ISP, usage type, and 90 days of individual reporter comments for any IP.</div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c3:
-            st.markdown(
-                """
-                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #2ecc71;">
-                    <div style="font-size:1.5rem;">📋</div>
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;border-left:3px solid #2ecc71;box-sizing:border-box;">
+                    <div style="font-size:1.4rem;">📋</div>
                     <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Bulk Reporting</div>
-                    <div style="color:#95a5a6;font-size:0.85rem;">Upload a CSV to report multiple malicious IPs to the community in a single action.</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;line-height:1.5;">Upload a CSV to report multiple malicious IPs to the community in a single action.</div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with c4:
-            st.markdown(
-                """
-                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #f39c12;">
-                    <div style="font-size:1.5rem;">📂</div>
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;border-left:3px solid #f39c12;box-sizing:border-box;">
+                    <div style="font-size:1.4rem;">📂</div>
                     <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Offline Review</div>
-                    <div style="color:#95a5a6;font-size:0.85rem;">Load a saved AbuseIPDB JSON response and explore it visually without spending API quota.</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;line-height:1.5;">Load a saved AbuseIPDB JSON response and explore it visually without spending API quota.</div>
                 </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
 

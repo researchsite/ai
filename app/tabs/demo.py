@@ -60,164 +60,122 @@ SAMPLE_CHECK = {
 }
 
 
-def _render_blacklist_preview(raw: dict) -> None:
-    bl = parse_blacklist(raw)
-    ip_count = bl.meta.count or len(bl.data)
-    st.info(
-        f"Blacklist snapshot — **{ip_count:,} IPs** — generated at **{bl.meta.generatedAt}**",
-        icon="ℹ️",
-    )
-    df = pd.DataFrame([
-        {
-            "IP Address": e.ipAddress,
-            "Abuse Score": e.abuseConfidenceScore,
-            "Last Reported": e.lastReportedAt or "—",
-            "Country": e.countryCode or "—",
-        }
-        for e in bl.data
-    ]).sort_values(by=["Abuse Score", "Last Reported"], ascending=[False, False]).reset_index(drop=True)
+def _render_result(raw: dict) -> None:
+    """Detect response type and render the appropriate view."""
+    response_type = detect_response_type(raw)
 
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Abuse Score": st.column_config.ProgressColumn(
-                "Abuse Score", min_value=0, max_value=100, format="%d"
-            ),
-            "Last Reported": st.column_config.DatetimeColumn(
-                "Last Reported", format="YYYY-MM-DD HH:mm"
-            ),
-        },
-    )
-    if len(df) >= 3:
-        st.markdown("**Score Distribution**")
-        bins = pd.cut(df["Abuse Score"], bins=[74, 85, 95, 100], labels=["75–85", "86–95", "96–100"])
-        dist = bins.value_counts().sort_index().reset_index()
-        dist.columns = ["Score Range", "Count"]
-        st.bar_chart(dist.set_index("Score Range"))
+    if response_type == "check":
+        result = parse_check(raw)
+        st.success(f"Detected a `/check` response for `{result.ipAddress}` — rendering analysis below.")
+        from app.tabs.ip_analysis import _render_check_result
+        _render_check_result(result)
+
+    elif response_type == "blacklist":
+        bl = parse_blacklist(raw)
+        ip_count = bl.meta.count or len(bl.data)
+        st.success(f"Detected a `/blacklist` response — **{ip_count:,} IPs**, generated at `{bl.meta.generatedAt}`.")
+        df = pd.DataFrame([
+            {
+                "IP Address": e.ipAddress,
+                "Abuse Score": e.abuseConfidenceScore,
+                "Last Reported": e.lastReportedAt or "—",
+                "Country": e.countryCode or "—",
+            }
+            for e in bl.data
+        ]).sort_values(by=["Abuse Score", "Last Reported"], ascending=[False, False]).reset_index(drop=True)
+
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Abuse Score": st.column_config.ProgressColumn(
+                    "Abuse Score", min_value=0, max_value=100, format="%d"
+                ),
+                "Last Reported": st.column_config.DatetimeColumn(
+                    "Last Reported", format="YYYY-MM-DD HH:mm"
+                ),
+            },
+        )
+        if len(df) >= 3:
+            st.markdown("**Score Distribution**")
+            bins = pd.cut(df["Abuse Score"], bins=[74, 85, 95, 100], labels=["75–85", "86–95", "96–100"])
+            dist = bins.value_counts().sort_index().reset_index()
+            dist.columns = ["Score Range", "Count"]
+            st.bar_chart(dist.set_index("Score Range"))
+
+    else:
+        st.error(
+            "This file doesn't match any known AbuseIPDB response format. "
+            "Expected either a `/check` response (where `data` is a dict with an `ipAddress` field) "
+            "or a `/blacklist` response (where `data` is an array of IP entries)."
+        )
 
 
 def render() -> None:
     st.subheader("Try Demo", divider="gray")
-
     st.markdown(
-        "Explore the full dashboard without an API key. "
-        "The **Sample Data** tab shows what ThreatScope looks like with real-world threat data. "
-        "The **Upload Your File** tab lets you load any AbuseIPDB JSON response you already have — "
-        "great for reviewing saved data or exploring without spending API quota."
+        "Upload any AbuseIPDB JSON response you already have to explore the full dashboard "
+        "without an API key. Don't have a file yet? Load the built-in sample below to "
+        "see what ThreatScope looks like with real threat data."
     )
 
-    tab_sample, tab_upload = st.tabs([
-        ":material/dataset: Sample Data",
-        ":material/upload_file: Upload Your File",
-    ])
-
-    # ── Sample Data ───────────────────────────────────────────────────────────
-    with tab_sample:
-        st.caption(
-            "These are real IPs from a recent AbuseIPDB blacklist snapshot, bundled here "
-            "so you can explore the interface. Connect your API key for live, up-to-date data."
+    # ── File uploader ─────────────────────────────────────────────────────────
+    with st.expander("What files can I upload?", icon=":material/help:"):
+        st.markdown(
+            "**Accepted formats:**\n"
+            "- A `/check` response — single IP analysis. Save the JSON from a previous "
+            "query and load it here to re-examine it without spending quota.\n"
+            "- A `/blacklist` response — the `data` field is an array of IP entries.\n\n"
+            "ThreatScope auto-detects which type you uploaded and renders the right view."
         )
 
-        sample_bl, sample_ip = st.tabs(["Blacklist Preview", "IP Analysis Preview"])
+    uploaded = st.file_uploader(
+        "Upload your AbuseIPDB JSON file",
+        type=["json"],
+        label_visibility="collapsed",
+        help="Accepts /check (single IP) or /blacklist response JSON from AbuseIPDB.",
+    )
 
-        with sample_bl:
-            with st.expander("What am I looking at?", icon=":material/help:"):
-                st.markdown(
-                    "This is a preview of the **Global Blacklist Feed** — AbuseIPDB's daily "
-                    "list of the most abusive IPs on the internet right now.\n\n"
-                    "- **Abuse Score** is a community-sourced confidence score from 0–100. "
-                    "100 means every reporter who checked this IP flagged it as malicious. "
-                    "75+ is the threshold used here — anything below that is noise.\n"
-                    "- **Last Reported** is the most recent time someone submitted an abuse "
-                    "report for this IP.\n"
-                    "- The **Score Distribution** chart at the bottom breaks the list into "
-                    "bands so you can see how severe the current threat landscape is."
-                )
-            _render_blacklist_preview(SAMPLE_BLACKLIST)
-
-        with sample_ip:
-            with st.expander("What am I looking at?", icon=":material/help:"):
-                st.markdown(
-                    "This is a preview of the **IP Analysis** view for a single IP address. "
-                    "The example below is `185.220.101.47`, a known Tor exit node that has "
-                    "been reported 312 times by 87 different reporters.\n\n"
-                    "- **Gauge** — the red/amber/green indicator shows the abuse confidence "
-                    "score at a glance. Red (60–100) means high confidence of malicious activity.\n"
-                    "- **Country & ISP** — helps you understand who operates the IP and where.\n"
-                    "- **Usage Type** — categorises the IP as a data centre, ISP, CDN, etc. "
-                    "Data centre IPs showing up in your logs are often bots or scrapers.\n"
-                    "- **Timeline** — shows when abuse was reported over the last 90 days, "
-                    "so you can see if it's an ongoing threat or a one-off incident.\n"
-                    "- **Raw Intelligence** — expand it to see every single field the API "
-                    "returned, including individual reporter comments."
-                )
-            from app.tabs.ip_analysis import _render_check_result
-            result = parse_check(SAMPLE_CHECK)
-            _render_check_result(result)
-
-    # ── Upload Your File ──────────────────────────────────────────────────────
-    with tab_upload:
-        with st.expander("How does this work?", icon=":material/help:"):
-            st.markdown(
-                "If you've previously fetched data from the AbuseIPDB API and saved the "
-                "JSON response, you can load it here to review it visually — without "
-                "making a new API call or spending any of your daily quota.\n\n"
-                "**Accepted file types:**\n"
-                "- A `/check` response — the JSON you get when you query a single IP. "
-                "The top-level `data` field will be a dict containing `ipAddress`.\n"
-                "- A `/blacklist` response — the JSON from a blacklist query. "
-                "The top-level `data` field will be an array of IP entries.\n\n"
-                "ThreatScope automatically detects which type you uploaded and renders "
-                "the appropriate view. You do not need to tell it which format it is."
-            )
-
-        uploaded = st.file_uploader(
-            "Drop your AbuseIPDB JSON file here",
-            type=["json"],
-            help="Accepts /check (single IP) or /blacklist (array of IPs) response JSON.",
-            label_visibility="collapsed",
-        )
-
-        if uploaded is None:
-            st.markdown(
-                "<div style='text-align:center;padding:2rem;color:#95a5a6'>"
-                "Upload a JSON file above to visualise your data here."
-                "</div>",
-                unsafe_allow_html=True,
-            )
-            return
-
+    if uploaded is not None:
+        # Clear sample state when user uploads their own file
+        st.session_state.pop("demo_show_sample", None)
         try:
             raw = json.load(uploaded)
+            _render_result(raw)
         except json.JSONDecodeError as exc:
             st.error(f"That file doesn't look like valid JSON: {exc}")
-            return
+        return
 
-        response_type = detect_response_type(raw)
+    # ── No file uploaded — show empty state + sample option ──────────────────
+    st.markdown(
+        "<div style='text-align:center;padding:1.5rem 0 0.5rem;color:#95a5a6;font-size:0.95rem;'>"
+        "No file uploaded yet."
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
-        if response_type == "check":
-            try:
-                result = parse_check(raw)
-                st.success(f"Detected a `/check` response for `{result.ipAddress}` — rendering analysis below.")
-                from app.tabs.ip_analysis import _render_check_result
-                _render_check_result(result)
-            except (KeyError, ValueError) as exc:
-                st.error(f"Couldn't parse the check response: {exc}")
+    col_l, col_btn, col_r = st.columns([2, 1, 2])
+    with col_btn:
+        if st.button(
+            "Load sample data",
+            use_container_width=True,
+            icon=":material/dataset:",
+            help="Loads a bundled snapshot of real AbuseIPDB data so you can explore the UI.",
+        ):
+            st.session_state["demo_show_sample"] = True
 
-        elif response_type == "blacklist":
-            try:
-                bl = parse_blacklist(raw)
-                ip_count = bl.meta.count or len(bl.data)
-                st.success(f"Detected a `/blacklist` response — **{ip_count:,} IPs**, generated at `{bl.meta.generatedAt}`.")
-                _render_blacklist_preview(raw)
-            except (KeyError, ValueError) as exc:
-                st.error(f"Couldn't parse the blacklist response: {exc}")
+    if st.session_state.get("demo_show_sample"):
+        st.markdown("---")
+        sample_bl, sample_ip = st.tabs(["Blacklist Snapshot", "IP Analysis Example"])
 
-        else:
-            st.error(
-                "This file doesn't match any known AbuseIPDB response format. "
-                "Expected either a `/check` response (where `data` is a dict with an `ipAddress` field) "
-                "or a `/blacklist` response (where `data` is an array of IP entries)."
+        with sample_bl:
+            st.caption("20 real IPs from a recent AbuseIPDB blacklist snapshot.")
+            _render_result(SAMPLE_BLACKLIST)
+
+        with sample_ip:
+            st.caption(
+                "Full analysis for `185.220.101.47` — a known Tor exit node "
+                "with 312 reports from 87 distinct reporters."
             )
+            _render_result(SAMPLE_CHECK)

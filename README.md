@@ -4,7 +4,7 @@ A browser-based security dashboard for investigating malicious IP addresses and 
 
 **Live app:** [ipthreatscope.streamlit.app](https://ipthreatscope.streamlit.app/)
 
-![ThreatScope walkthrough](assets/walkthrough.gif)
+https://github.com/researchsite/ai/raw/master/assets/walkthrough.mp4
 
 ---
 

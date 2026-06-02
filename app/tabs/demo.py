@@ -114,68 +114,110 @@ def _render_result(raw: dict) -> None:
 
 def render() -> None:
     st.subheader("Try Demo", divider="gray")
-    st.markdown(
-        "Upload any AbuseIPDB JSON response you already have to explore the full dashboard "
-        "without an API key. Don't have a file yet? Load the built-in sample below to "
-        "see what ThreatScope looks like with real threat data."
+    st.caption(
+        "Explore the full dashboard without an API key. "
+        "Try a single IP preview, upload your own AbuseIPDB JSON, or load built-in sample data."
     )
 
-    # ── File uploader ─────────────────────────────────────────────────────────
-    with st.expander("What files can I upload?", icon=":material/help:"):
+    demo_ip_tab, demo_upload_tab, demo_sample_tab = st.tabs([
+        ":material/search: Single IP Preview",
+        ":material/upload_file: Upload JSON",
+        ":material/dataset: Sample Data",
+    ])
+
+    # ── Single IP preview (mock, uses bundled sample) ─────────────────────────
+    with demo_ip_tab:
         st.markdown(
-            "**Accepted formats:**\n"
-            "- A `/check` response — single IP analysis. Save the JSON from a previous "
-            "query and load it here to re-examine it without spending quota.\n"
-            "- A `/blacklist` response — the `data` field is an array of IP entries.\n\n"
-            "ThreatScope auto-detects which type you uploaded and renders the right view."
+            "Enter any IP address below to see what a full analysis looks like. "
+            "This is a **demo preview** — the dashboard renders using a real known-bad IP "
+            "from the AbuseIPDB database. Connect your API key to query any IP live."
+        )
+        col_input, col_btn = st.columns([4, 1])
+        with col_input:
+            ip_input = st.text_input(
+                "IP Address",
+                placeholder="e.g. 1.2.3.4 or 2001:db8::1",
+                label_visibility="collapsed",
+                key="demo_ip_input",
+            )
+        with col_btn:
+            analyze = st.button(
+                "Preview",
+                type="primary",
+                use_container_width=True,
+                icon=":material/search:",
+            )
+
+        if analyze:
+            if not ip_input.strip():
+                st.warning("Enter an IP address to preview.")
+            else:
+                st.session_state["demo_ip_queried"] = ip_input.strip()
+
+        if st.session_state.get("demo_ip_queried"):
+            queried = st.session_state["demo_ip_queried"]
+            st.info(
+                f"Showing a **sample analysis** in place of a live lookup for `{queried}`. "
+                "Connect your API key on the **Connect API Key** tab to get real results.",
+                icon=":material/info:",
+            )
+            from app.tabs.ip_analysis import _render_check_result
+            _render_check_result(parse_check(SAMPLE_CHECK))
+
+    # ── Upload JSON ───────────────────────────────────────────────────────────
+    with demo_upload_tab:
+        st.markdown(
+            "Upload any AbuseIPDB JSON response you already have — "
+            "a `/check` (single IP) or `/blacklist` response. "
+            "ThreatScope detects the format automatically."
         )
 
-    uploaded = st.file_uploader(
-        "Upload your AbuseIPDB JSON file",
-        type=["json"],
-        label_visibility="collapsed",
-        help="Accepts /check (single IP) or /blacklist response JSON from AbuseIPDB.",
-    )
+        with st.expander("What files can I upload?", icon=":material/help:"):
+            st.markdown(
+                "- **`/check` response** — single IP analysis. The top-level `data` field "
+                "is a dict containing `ipAddress`, `abuseConfidenceScore`, `reports`, etc.\n"
+                "- **`/blacklist` response** — the `data` field is an array of IP entries.\n\n"
+                "Save the raw JSON from a previous API call and load it here to re-examine "
+                "it without spending any daily quota."
+            )
 
-    if uploaded is not None:
-        # Clear sample state when user uploads their own file
-        st.session_state.pop("demo_show_sample", None)
-        try:
-            raw = json.load(uploaded)
-            _render_result(raw)
-        except json.JSONDecodeError as exc:
-            st.error(f"That file doesn't look like valid JSON: {exc}")
-        return
+        uploaded = st.file_uploader(
+            "Upload your AbuseIPDB JSON file",
+            type=["json"],
+            label_visibility="collapsed",
+            help="Accepts /check (single IP) or /blacklist response JSON from AbuseIPDB.",
+        )
 
-    # ── No file uploaded — show empty state + sample option ──────────────────
-    st.markdown(
-        "<div style='text-align:center;padding:1.5rem 0 0.5rem;color:#95a5a6;font-size:0.95rem;'>"
-        "No file uploaded yet."
-        "</div>",
-        unsafe_allow_html=True,
-    )
+        if uploaded is not None:
+            try:
+                raw = json.load(uploaded)
+                _render_result(raw)
+            except json.JSONDecodeError as exc:
+                st.error(f"That file doesn't look like valid JSON: {exc}")
+        else:
+            st.markdown(
+                "<div style='text-align:center;padding:1.5rem 0;color:#95a5a6;font-size:0.9rem;'>"
+                "No file uploaded yet — drag and drop or click above."
+                "</div>",
+                unsafe_allow_html=True,
+            )
 
-    col_l, col_btn, col_r = st.columns([2, 1, 2])
-    with col_btn:
-        if st.button(
-            "Load sample data",
-            use_container_width=True,
-            icon=":material/dataset:",
-            help="Loads a bundled snapshot of real AbuseIPDB data so you can explore the UI.",
-        ):
-            st.session_state["demo_show_sample"] = True
+    # ── Sample Data ───────────────────────────────────────────────────────────
+    with demo_sample_tab:
+        st.markdown(
+            "Built-in snapshots of real AbuseIPDB data so you can explore every part "
+            "of the dashboard without needing a file or an API key."
+        )
+        snap_bl, snap_ip = st.tabs(["Blacklist Snapshot", "IP Analysis Example"])
 
-    if st.session_state.get("demo_show_sample"):
-        st.markdown("---")
-        sample_bl, sample_ip = st.tabs(["Blacklist Snapshot", "IP Analysis Example"])
-
-        with sample_bl:
+        with snap_bl:
             st.caption("20 real IPs from a recent AbuseIPDB blacklist snapshot.")
             _render_result(SAMPLE_BLACKLIST)
 
-        with sample_ip:
+        with snap_ip:
             st.caption(
                 "Full analysis for `185.220.101.47` — a known Tor exit node "
                 "with 312 reports from 87 distinct reporters."
             )
             _render_result(SAMPLE_CHECK)
+

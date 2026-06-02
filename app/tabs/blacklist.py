@@ -14,10 +14,24 @@ def _cached_blacklist(api_key: str) -> dict | None:
 
 def render(api_key: str) -> None:
     st.subheader("Global Blacklist Feed", divider="red")
-    st.caption(
-        "Displays IPs with an abuse confidence score >= 75. "
-        "Cached for 4 hours to protect your daily API quota."
-    )
+
+    with st.expander("How to use this tab", icon=":material/help:"):
+        st.markdown(
+            "This tab pulls AbuseIPDB's pre-computed blacklist — a daily snapshot of the "
+            "most reported malicious IPs across the internet.\n\n"
+            "**Abuse Confidence Score** is a number from 0 to 100 that reflects how strongly "
+            "the community believes an IP is malicious. It's calculated from the number of "
+            "independent reporters, how recently they reported, and how consistent their "
+            "reports are. 100 means unanimous — every checker flagged it. This feed only "
+            "shows IPs scoring 75 or above.\n\n"
+            "**Caching** — the free AbuseIPDB plan allows only 5 blacklist requests per day. "
+            "To protect that quota, the list is cached for 4 hours. If you hit Refresh and "
+            "the button is greyed out, you've hit the daily cap and the app is showing you "
+            "the most recently cached version instead of crashing.\n\n"
+            "**Full data** — the main table shows the three most important columns. "
+            "Click *View Full Blacklist Data* below the table to see every field the API "
+            "returned, including ISP, domain, and report counts."
+        )
 
     col_refresh, col_status = st.columns([1, 4])
 

@@ -170,7 +170,21 @@ def render(api_key: str) -> None:
 
     # ── Single IP ─────────────────────────────────────────────────────────────
     with mode_single:
-        st.markdown("Enter an IPv4 or IPv6 address to query AbuseIPDB for threat intelligence.")
+        with st.expander("How to use this tab", icon=":material/help:"):
+            st.markdown(
+                "Enter any IPv4 or IPv6 address to pull a full threat intelligence report "
+                "from AbuseIPDB. This is useful when you spot a suspicious IP in your server "
+                "logs, firewall alerts, or an intrusion detection system and want to know "
+                "whether it's a known bad actor before deciding how to respond.\n\n"
+                "The query looks back **90 days** and uses **verbose mode**, which means "
+                "you get individual reporter comments — not just a summary score. This lets "
+                "you see exactly what behaviour was reported (brute force, port scan, spam, "
+                "etc.) and from which countries the reports came.\n\n"
+                "**IPv6 is supported** — paste the address as-is (e.g. `2001:db8::1`) and "
+                "ThreatScope handles the URL encoding automatically.\n\n"
+                "Each query counts against your daily API limit (1,000 checks/day on the "
+                "free plan), so avoid running the same IP repeatedly."
+            )
         ip_input = st.text_input(
             "IP Address",
             placeholder="e.g. 1.2.3.4 or 2001:db8::1",
@@ -188,6 +202,25 @@ def render(api_key: str) -> None:
 
     # ── Bulk CSV ──────────────────────────────────────────────────────────────
     with mode_bulk:
+        with st.expander("How to use this tab", icon=":material/help:"):
+            st.markdown(
+                "Use this tab when you have a batch of malicious IPs you want to report "
+                "to the AbuseIPDB community. This helps other users — and automated systems "
+                "around the world — block those IPs faster.\n\n"
+                "**Required CSV columns:**\n"
+                "| Column | Description |\n"
+                "|---|---|\n"
+                "| `IP` | The IP address to report (IPv4 or IPv6) |\n"
+                "| `Categories` | Comma-separated category numbers (see below) |\n"
+                "| `ReportDate` | When the abuse occurred, in ISO 8601 format: `2024-01-15T08:30:00+00:00` |\n"
+                "| `Comment` | A brief description of what the IP did |\n\n"
+                "**Common category numbers:**\n"
+                "4 = DDoS Attack · 9 = Open Proxy · 11 = Email Spam · 14 = Port Scan · "
+                "15 = Hacking · 16 = SQL Injection · 18 = Brute-Force · 19 = Bad Web Bot · "
+                "21 = Web App Attack · 22 = SSH Attack\n\n"
+                "Download the template below to see the exact format, then fill in your own "
+                "data. The preview shown after upload lets you double-check before submitting."
+            )
         st.markdown(
             "Upload a CSV file to bulk-report multiple IPs. "
             "Required columns: `IP`, `Categories`, `ReportDate`, `Comment`."
@@ -225,6 +258,24 @@ def render(api_key: str) -> None:
 
     # ── JSON Upload ───────────────────────────────────────────────────────────
     with mode_json:
+        with st.expander("How to use this tab", icon=":material/help:"):
+            st.markdown(
+                "If you already have a saved AbuseIPDB JSON response, upload it here to "
+                "visualise it with all the same charts and tables as a live query — without "
+                "spending any API quota.\n\n"
+                "**When is this useful?**\n"
+                "- You've hit your daily API limit and want to re-examine a response you "
+                "fetched earlier.\n"
+                "- You're sharing findings with a colleague who doesn't have an API key.\n"
+                "- You fetched data programmatically (e.g. via `curl` or a script) and "
+                "saved the raw JSON for later review.\n\n"
+                "**Accepted formats:**\n"
+                "- A `/check` response — single IP analysis. The `data` field is a dict "
+                "containing `ipAddress`, `abuseConfidenceScore`, `reports`, etc.\n"
+                "- A `/blacklist` response — the `data` field is an array of IP entries.\n\n"
+                "ThreatScope detects the format automatically. Just upload and it figures "
+                "out which view to render."
+            )
         st.markdown(
             "Upload a pre-existing AbuseIPDB JSON response (`/check` or `/blacklist`) "
             "to inspect it without making a live API call."

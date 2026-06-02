@@ -65,6 +65,79 @@ def main() -> None:
 
     api_key = st.session_state["api_key"]
 
+    # ── Hero — shown only before auth ─────────────────────────────────────────
+    if not api_key:
+        st.markdown(
+            """
+            <div style="
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                border-radius: 12px;
+                padding: 2.5rem 3rem;
+                margin-bottom: 1.5rem;
+                border: 1px solid #e74c3c33;
+            ">
+                <h2 style="color:#ffffff;margin:0 0 0.5rem 0;font-size:1.6rem;">
+                    Real-time IP Threat Intelligence — in your browser
+                </h2>
+                <p style="color:#bdc3c7;font-size:1rem;line-height:1.7;margin:0 0 1.5rem 0;max-width:780px;">
+                    ThreatScope Analytics connects to the <strong style="color:#e74c3c;">AbuseIPDB</strong>
+                    community database to help security engineers, sysadmins, and analysts answer
+                    one question fast: <em>is this IP address a known threat?</em>
+                    No scripts, no terminal — just paste an IP and get a full picture in seconds.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            st.markdown(
+                """
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #e74c3c;">
+                    <div style="font-size:1.5rem;">🛡️</div>
+                    <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Global Blacklist</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;">Live feed of the world's most abusive IPs, updated daily and cached to protect your quota.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                """
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #3498db;">
+                    <div style="font-size:1.5rem;">🔍</div>
+                    <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">IP Deep Dive</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;">Score gauge, country, ISP, usage type, and 90 days of individual reporter comments for any IP.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c3:
+            st.markdown(
+                """
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #2ecc71;">
+                    <div style="font-size:1.5rem;">📋</div>
+                    <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Bulk Reporting</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;">Upload a CSV to report multiple malicious IPs to the community in a single action.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with c4:
+            st.markdown(
+                """
+                <div style="background:#1e2a3a;border-radius:8px;padding:1.2rem;height:130px;border-left:3px solid #f39c12;">
+                    <div style="font-size:1.5rem;">📂</div>
+                    <div style="color:#ecf0f1;font-weight:600;margin:0.4rem 0 0.3rem;">Offline Review</div>
+                    <div style="color:#95a5a6;font-size:0.85rem;">Load a saved AbuseIPDB JSON response and explore it visually without spending API quota.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
     # ── Pre-auth: Demo + Connect tabs ─────────────────────────────────────────
     if not api_key:
         tab_demo, tab_connect = st.tabs([

@@ -1,0 +1,15 @@
+[project]
+name = "threatscope"
+version = "0.1.0"
+description = "ThreatScope Analytics - Security dashboard powered by AbuseIPDB"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "streamlit>=1.45.0",
+    "requests>=2.32.0",
+    "plotly>=5.22.0",
+    "pandas>=2.2.0",
+]
+
+[project.scripts]
+threatscope = "app.main:main"

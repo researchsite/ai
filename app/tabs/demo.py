@@ -60,7 +60,7 @@ SAMPLE_CHECK = {
 }
 
 
-def _render_result(raw: dict) -> None:
+def _render_result(raw: dict, key: str = "result") -> None:
     """Detect response type and render the appropriate view."""
     response_type = detect_response_type(raw)
 
@@ -68,7 +68,7 @@ def _render_result(raw: dict) -> None:
         result = parse_check(raw)
         st.success(f"Detected a `/check` response for `{result.ipAddress}` — rendering analysis below.")
         from app.tabs.ip_analysis import _render_check_result
-        _render_check_result(result)
+        _render_check_result(result, key=key)
 
     elif response_type == "blacklist":
         bl = parse_blacklist(raw)
@@ -162,7 +162,7 @@ def render() -> None:
                 icon=":material/info:",
             )
             from app.tabs.ip_analysis import _render_check_result
-            _render_check_result(parse_check(SAMPLE_CHECK))
+            _render_check_result(parse_check(SAMPLE_CHECK), key="demo_ip_preview")
 
     # ── Upload JSON ───────────────────────────────────────────────────────────
     with demo_upload_tab:
@@ -191,7 +191,7 @@ def render() -> None:
         if uploaded is not None:
             try:
                 raw = json.load(uploaded)
-                _render_result(raw)
+                _render_result(raw, key="demo_upload")
             except json.JSONDecodeError as exc:
                 st.error(f"That file doesn't look like valid JSON: {exc}")
         else:
@@ -212,12 +212,12 @@ def render() -> None:
 
         with snap_bl:
             st.caption("20 real IPs from a recent AbuseIPDB blacklist snapshot.")
-            _render_result(SAMPLE_BLACKLIST)
+            _render_result(SAMPLE_BLACKLIST, key="demo_snap_bl")
 
         with snap_ip:
             st.caption(
                 "Full analysis for `185.220.101.47` — a known Tor exit node "
                 "with 312 reports from 87 distinct reporters."
             )
-            _render_result(SAMPLE_CHECK)
+            _render_result(SAMPLE_CHECK, key="demo_snap_ip")
 

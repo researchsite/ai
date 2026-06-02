@@ -15,7 +15,7 @@ from app.components.tables import decode_categories, render_kv_table, usage_type
 BULK_CSV_TEMPLATE = "IP,Categories,ReportDate,Comment\n1.2.3.4,18,2024-01-01T00:00:00+00:00,Brute force attempt\n"
 
 
-def _render_check_result(result: CheckResponse) -> None:
+def _render_check_result(result: CheckResponse, key: str = "main") -> None:
     """Render all visualizations and expanders for a /check response."""
     st.markdown(f"### Analysis: `{result.ipAddress}`")
     st.divider()
@@ -24,7 +24,7 @@ def _render_check_result(result: CheckResponse) -> None:
     col_gauge, col_meta = st.columns([1, 1])
 
     with col_gauge:
-        render_abuse_gauge(result.abuseConfidenceScore)
+        render_abuse_gauge(result.abuseConfidenceScore, key=f"{key}_gauge")
 
     with col_meta:
         st.markdown("**IP Intelligence Summary**")
@@ -115,7 +115,7 @@ def _render_check_result(result: CheckResponse) -> None:
                 xaxis={"showgrid": False},
                 yaxis={"showgrid": True, "gridcolor": "#ecf0f1"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key=f"{key}_timeline")
 
     # ── Raw Intelligence Expander ─────────────────────────────────────────────
     with st.expander("View Raw Intelligence Data", expanded=False):

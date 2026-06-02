@@ -144,6 +144,14 @@ def main() -> None:
     with tab_ip:
         ip_analysis.render(api_key)
 
+    st.markdown(
+        "<div style='text-align:center;color:#7f8c8d;font-size:0.78rem;padding:2rem 0 0.5rem;'>"
+        "Built with <a href='https://claude.ai/code' style='color:#7f8c8d;'>Claude Code</a> "
+        "· Powered by <a href='https://www.abuseipdb.com/' style='color:#7f8c8d;'>AbuseIPDB</a>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
 
 if __name__ == "__main__":
     main()

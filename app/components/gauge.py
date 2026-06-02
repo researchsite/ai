@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 
-def render_abuse_gauge(score: int) -> None:
+def render_abuse_gauge(score: int, key: str = "gauge") -> None:
     """Render a Plotly gauge for abuseConfidenceScore (0–100)."""
     if score <= 25:
         bar_color = "#2ecc71"   # green
@@ -41,4 +41,4 @@ def render_abuse_gauge(score: int) -> None:
         paper_bgcolor="rgba(0,0,0,0)",
         font={"color": "#2c3e50"},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=key)

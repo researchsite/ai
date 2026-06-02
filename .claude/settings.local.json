@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(\"Removed root main.py\")",
-      "PowerShell(Get-ChildItem \"c:\\\\AI\\\\AGentic\\\\ThreatScope\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName | Where-Object { $_ -notmatch \"\\\\.venv|__pycache__|uv\\\\.lock\" })"
-    ]
-  }
-}
